@@ -1,5 +1,6 @@
 package com.example.mjgrusni.stopwatch;
 
+import android.content.res.Configuration;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,13 +9,20 @@ import android.widget.TextView;
 
 public class StopwatchActivity extends AppCompatActivity {
 
-    private boolean running;
+    private boolean running, wasRunning = false;
     private int seconds = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stopwatch);
+
+        if(savedInstanceState != null){
+            seconds = savedInstanceState.getInt("seconds");
+            running = savedInstanceState.getBoolean("running");
+            wasRunning = savedInstanceState.getBoolean("wasRunning");
+        }
+
         runTimer();
     }
 
@@ -34,7 +42,7 @@ public class StopwatchActivity extends AppCompatActivity {
     private void runTimer() {
         final TextView timeView = (TextView) findViewById(R.id.time_view);
         final Handler handler = new Handler();
-        handler.post(new Runnable(){
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 int hours = seconds / 3600;
@@ -43,11 +51,34 @@ public class StopwatchActivity extends AppCompatActivity {
                 String time = String.format("%d:%02d:%02d", hours, minutes, secs);
 
                 timeView.setText(time);
-                if(running){
+                if (running) {
                     seconds++;
                 }
                 handler.postDelayed(this, 1000);
             }
         });
+    }
+
+   /* public void onConfigurationChanged(Configuration config) {
+
+    }*/
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putInt("seconds", seconds);
+        savedInstanceState.putBoolean("running", running);
+        savedInstanceState.putBoolean("wasRunning", wasRunning);
+    }
+
+    protected void onStop() {
+        super.onStop();
+        wasRunning = running;
+        running = false;
+    }
+
+    protected void onStart() {
+        super.onStart();
+        if(wasRunning){
+            running = true;
+        }
     }
 }
